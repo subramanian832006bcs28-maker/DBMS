@@ -1,0 +1,115 @@
+
+
+
+1--department top salary leetcode
+
+SELECT 
+    d.name AS Department,
+    e.name AS Employee,
+    e.salary AS Salary
+FROM (
+    SELECT *,
+           DENSE_RANK() OVER (
+               PARTITION BY departmentId 
+               ORDER BY salary DESC
+           ) AS rnk
+    FROM Employee
+) e
+JOIN Department d
+ON e.departmentId = d.id
+WHERE e.rnk <= 3;
+
+2--department with highest salary
+SELECT 
+    d.name AS Department,
+    e.name AS Employee,
+    e.salary AS Salary
+FROM Employee e
+JOIN Department d
+    ON e.departmentId = d.id
+WHERE e.salary = (
+    SELECT MAX(salary)
+    FROM Employee
+    WHERE departmentId = e.departmentId
+);
+
+3--Japanese city
+
+select * from city where countrycode='jpn';
+4-- weather observation station 20
+SELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY LAT_N), 4)
+FROM STATION;
+5-- binary tree nodes
+
+SELECT N,
+    CASE 
+        WHEN P IS NULL THEN 'Root'
+        WHEN N IN (SELECT P FROM BST WHERE P IS NOT NULL) THEN 'Inner'
+        ELSE 'Leaf'
+    END
+FROM BST
+ORDER BY N;
+
+6--types of triangle
+
+SELECT 
+    CASE
+        -- Not a triangle condition
+        WHEN A + B <= C OR A + C <= B OR B + C <= A THEN 'Not A Triangle'
+        
+        -- All sides equal
+        WHEN A = B AND B = C THEN 'Equilateral'
+        
+        -- Any two sides equal
+        WHEN A = B OR B = C OR A = C THEN 'Isosceles'
+        
+        -- All sides different
+        ELSE 'Scalene'
+    END AS triangle_type
+FROM TRIANGLES;
+
+7--occupations
+
+SELECT
+    MAX(CASE WHEN Occupation = 'Doctor' THEN Name END) AS Doctor,
+    MAX(CASE WHEN Occupation = 'Professor' THEN Name END) AS Professor,
+    MAX(CASE WHEN Occupation = 'Singer' THEN Name END) AS Singer,
+    MAX(CASE WHEN Occupation = 'Actor' THEN Name END) AS Actor
+FROM (
+    SELECT 
+        Name,
+        Occupation,
+        ROW_NUMBER() OVER (PARTITION BY Occupation ORDER BY Name) AS rn
+    FROM OCCUPATIONS
+)
+GROUP BY rn
+ORDER BY rn;
+
+8--olivenders inventory
+
+SELECT 
+    w.id,
+    wp.age,
+    w.coins_needed,
+    w.power
+FROM Wands w
+JOIN Wands_Property wp 
+    ON w.code = wp.code
+WHERE wp.is_evil = 0
+AND w.coins_needed = (
+    SELECT MIN(w2.coins_needed)
+    FROM Wands w2
+    JOIN Wands_Property wp2 
+        ON w2.code = wp2.code
+    WHERE wp2.is_evil = 0
+      AND w2.power = w.power
+      AND wp2.age = wp.age
+)
+ORDER BY w.power DESC, wp.age DESC;
+
+9--population census
+SELECT SUM(ci.POPULATION)
+FROM CITY ci
+JOIN COUNTRY co
+    ON ci.COUNTRYCODE = co.CODE
+WHERE co.CONTINENT = 'Asia';
